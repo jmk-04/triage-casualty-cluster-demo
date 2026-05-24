@@ -7,7 +7,6 @@ import {
   Building2,
   Crosshair,
   Filter,
-  Helicopter,
   Hospital,
   MapPin,
   RefreshCw,
@@ -219,7 +218,7 @@ export default function App() {
       <main className="space-y-4 p-4">
         <Dashboard metrics={simulation.metrics} />
 
-        <section className="grid grid-cols-[320px_minmax(520px,1fr)_380px] gap-4">
+        <section className="grid grid-cols-[300px_minmax(560px,1fr)_420px] items-start gap-4">
           <ScenarioPanel
             settings={settings}
             onChange={updateScenario}
@@ -299,7 +298,7 @@ function Dashboard({ metrics }: { metrics: ReturnType<typeof runSimulation>['met
     ['과부하 시설', metrics.overloadedFacilities, Hospital],
     ['구급차 사용', `${metrics.usedAmbulances}`, Ambulance],
     ['장갑구급차 사용', `${metrics.usedArmoredAmbulances}`, Shield],
-    ['헬기 사용', `${metrics.usedHelicopters}`, Helicopter],
+    ['헬기 사용', `${metrics.usedHelicopters}`, Route],
     ['첫 후송 완료', `${metrics.firstEvacuationComplete}분`, Route],
     ['전체 완료 예상', `${metrics.allEvacuationComplete}분`, Route],
     ['CBRN 의심', metrics.cbrnSuspected, AlertTriangle],
@@ -675,6 +674,14 @@ function PatientDetail({
   onUpdateInjury: (patientId: string, key: keyof Patient['injuries'], value: boolean | number, detail: string) => void;
 }) {
   if (!patient) return null;
+  const marchEntries = [
+    { key: 'M', label: '대량출혈', value: patient.marchFlags.M, alert: patient.injuries.massiveHemorrhage },
+    { key: 'A', label: '기도', value: patient.marchFlags.A, alert: patient.injuries.airwayObstruction },
+    { key: 'R', label: '호흡', value: patient.marchFlags.R, alert: patient.respiratoryRate > 30 || patient.spo2 < 90 || patient.injuries.chestInjury },
+    { key: 'C', label: '순환', value: patient.marchFlags.C, alert: patient.systolicBp < 90 || patient.capillaryRefill !== '정상' },
+    { key: 'H', label: '저체온/두부', value: patient.marchFlags.H, alert: patient.injuries.hypothermia || patient.injuries.headInjury },
+  ];
+
   return (
     <section className="panel space-y-3">
       <PanelTitle icon={<Users size={16} />} title="환자 상세/수정" />
@@ -686,6 +693,14 @@ function PatientDetail({
         <span className="triage-pill" style={{ background: TRIAGE_COLORS[patient.triage], color: patient.triage === 'DELAYED' ? '#111827' : '#fff' }}>
           {TRIAGE_LABELS[patient.triage]}
         </span>
+      </div>
+      <div className="patient-state-grid">
+        <Info label="발견 시각" value={patient.foundAt} />
+        <Info label="의식" value={patient.consciousness} />
+        <Info label="통증" value={`${patient.painScore}/10`} />
+        <Info label="체온" value={`${patient.temperature}℃`} />
+        <Info label="추천 후송" value={patient.recommendedTransport} />
+        <Info label="후송 시간" value={patient.route ? `${patient.route.minutes}분` : '대기'} />
       </div>
       <div className="grid grid-cols-2 gap-2">
         <NumberEdit label="호흡수" value={patient.respiratoryRate} suffix="회/분" onChange={(value) => onUpdate(patient.id, { respiratoryRate: value, breathing: value > 0 }, `호흡수 ${value}회/분`)} />
@@ -723,17 +738,25 @@ function PatientDetail({
         <Toggle label="보행 가능" checked={patient.walking} onChange={(value) => onUpdate(patient.id, { walking: value }, value ? '보행 가능' : '보행 불가')} />
         <Toggle label="호흡 있음" checked={patient.breathing} onChange={(value) => onUpdate(patient.id, { breathing: value, respiratoryRate: value ? Math.max(patient.respiratoryRate, 12) : 0 }, value ? '호흡 있음' : '호흡 없음')} />
         <Toggle label="대량출혈" checked={patient.injuries.massiveHemorrhage} onChange={(value) => onUpdateInjury(patient.id, 'massiveHemorrhage', value, value ? '대량출혈 추가' : '대량출혈 해제')} />
+        <Toggle label="지혈 완료" checked={patient.treatments.bleedingControlled} onChange={(value) => onUpdate(patient.id, { treatments: { ...patient.treatments, bleedingControlled: value } }, value ? '지혈 완료' : '지혈 미완료')} />
+        <Toggle label="기도 폐쇄" checked={patient.injuries.airwayObstruction} onChange={(value) => onUpdateInjury(patient.id, 'airwayObstruction', value, value ? '기도 폐쇄 의심 추가' : '기도 폐쇄 해제')} />
+        <Toggle label="기도 확보" checked={patient.treatments.airwaySecured} onChange={(value) => onUpdate(patient.id, { treatments: { ...patient.treatments, airwaySecured: value } }, value ? '기도 확보' : '기도 미확보')} />
         <Toggle label="흉부손상" checked={patient.injuries.chestInjury} onChange={(value) => onUpdateInjury(patient.id, 'chestInjury', value, value ? '흉부손상 추가' : '흉부손상 해제')} />
+        <Toggle label="긴장성 기흉" checked={patient.injuries.tensionPneumothorax} onChange={(value) => onUpdateInjury(patient.id, 'tensionPneumothorax', value, value ? '긴장성 기흉 의심 추가' : '긴장성 기흉 해제')} />
         <Toggle label="두부손상" checked={patient.injuries.headInjury} onChange={(value) => onUpdateInjury(patient.id, 'headInjury', value, value ? '두부손상 추가' : '두부손상 해제')} />
+        <Toggle label="복부손상" checked={patient.injuries.abdominalInjury} onChange={(value) => onUpdateInjury(patient.id, 'abdominalInjury', value, value ? '복부손상 추가' : '복부손상 해제')} />
+        <Toggle label="쇼크 의심" checked={patient.injuries.shock} onChange={(value) => onUpdateInjury(patient.id, 'shock', value, value ? '쇼크 의심 추가' : '쇼크 해제')} />
         <Toggle label="CBRN 의심" checked={hasCbrn(patient)} onChange={(value) => onUpdateInjury(patient.id, 'chemicalExposure', value, value ? 'CBRN 의심 추가' : 'CBRN 의심 해제')} />
       </div>
-      <div className="rounded-md border border-command-line bg-black/20 p-3">
-        <p className="mb-2 text-xs font-semibold text-slate-300">MARCH 플래그</p>
-        <div className="space-y-1 text-xs text-slate-300">
-          {Object.entries(patient.marchFlags).map(([key, value]) => (
-            <p key={key}>
-              <span className="font-semibold text-command-mint">{key}</span>: {value}
-            </p>
+      <div>
+        <p className="mb-2 text-xs font-semibold text-slate-300">MARCH 위험 플래그</p>
+        <div className="march-grid">
+          {marchEntries.map((entry) => (
+            <div key={entry.key} className={`march-card ${entry.alert ? 'alert' : ''}`}>
+              <span>{entry.key}</span>
+              <strong>{entry.label}</strong>
+              <p>{entry.value}</p>
+            </div>
           ))}
         </div>
       </div>
