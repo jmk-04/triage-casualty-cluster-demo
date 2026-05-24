@@ -218,70 +218,71 @@ export default function App() {
       <main className="space-y-4 p-4">
         <Dashboard metrics={simulation.metrics} />
 
-        <section className="grid grid-cols-[300px_minmax(560px,1fr)_420px] items-start gap-4">
-          <ScenarioPanel
-            settings={settings}
-            onChange={updateScenario}
-            onRecalculate={recalculate}
-            onNewScenario={newScenario}
-            onResetPatients={() => {
-              const reset = createPatients(settings);
-              setPatients(reset);
-              setSelectedPatientId(reset[0]?.id ?? '');
-              setChangeLog('환자 데이터가 현재 시나리오 기준으로 초기화되었습니다.');
-            }}
-          />
+        <section className="grid grid-cols-[320px_minmax(620px,1fr)_400px] items-start gap-4">
+          <aside className="space-y-4">
+            <ScenarioPanel
+              settings={settings}
+              onChange={updateScenario}
+              onRecalculate={recalculate}
+              onNewScenario={newScenario}
+              onResetPatients={() => {
+                const reset = createPatients(settings);
+                setPatients(reset);
+                setSelectedPatientId(reset[0]?.id ?? '');
+                setChangeLog('환자 데이터가 현재 시나리오 기준으로 초기화되었습니다.');
+              }}
+            />
+            <FacilityResources
+              facilities={filteredFacilities}
+              filter={facilityFilter}
+              onFilter={setFacilityFilter}
+              onSelect={setSelectedFacilityId}
+              selectedFacilityId={selectedFacility?.id}
+            />
+          </aside>
 
-          <TacticalMap
-            settings={settings}
-            roads={simulation.roadEdges}
-            patients={simulation.patients}
-            facilities={simulation.facilities}
-            selectedPatient={selectedPatient}
-            selectedFacility={selectedFacility}
-            activeRoute={activeRoute}
-            onMoveIncident={moveIncident}
-            onSelectPatient={setSelectedPatientId}
-            onSelectFacility={setSelectedFacilityId}
-          />
+          <div className="space-y-4">
+            <TacticalMap
+              settings={settings}
+              roads={simulation.roadEdges}
+              patients={simulation.patients}
+              facilities={simulation.facilities}
+              selectedPatient={selectedPatient}
+              selectedFacility={selectedFacility}
+              activeRoute={activeRoute}
+              onMoveIncident={moveIncident}
+              onSelectPatient={setSelectedPatientId}
+              onSelectFacility={setSelectedFacilityId}
+            />
+            <PatientTable
+              patients={filteredPatients}
+              facilities={simulation.facilities}
+              selectedPatientId={selectedPatient?.id}
+              search={search}
+              triageFilter={triageFilter}
+              injuryFilter={injuryFilter}
+              hospitalFilter={hospitalFilter}
+              showImmediateOnly={showImmediateOnly}
+              showUnassignedOnly={showUnassignedOnly}
+              showCbrnOnly={showCbrnOnly}
+              showSurgeryOnly={showSurgeryOnly}
+              onSearch={setSearch}
+              onTriageFilter={setTriageFilter}
+              onInjuryFilter={setInjuryFilter}
+              onHospitalFilter={setHospitalFilter}
+              onImmediateOnly={setShowImmediateOnly}
+              onUnassignedOnly={setShowUnassignedOnly}
+              onCbrnOnly={setShowCbrnOnly}
+              onSurgeryOnly={setShowSurgeryOnly}
+              onSelect={setSelectedPatientId}
+            />
+          </div>
 
           <aside className="space-y-4">
             <PatientDetail patient={selectedPatient} facility={selectedFacility} onUpdate={updatePatient} onUpdateInjury={updatePatientInjury} />
             <FacilityDetail facility={selectedFacility} selectedPatient={selectedPatient} />
             <AIRecommendations recommendations={simulation.aiRecommendations} changeLog={changeLog} routeDigest={simulation.routeDigest} />
           </aside>
-        </section>
-
-        <section className="grid grid-cols-[minmax(640px,1.4fr)_minmax(420px,0.8fr)] gap-4">
-          <PatientTable
-            patients={filteredPatients}
-            facilities={simulation.facilities}
-            selectedPatientId={selectedPatient?.id}
-            search={search}
-            triageFilter={triageFilter}
-            injuryFilter={injuryFilter}
-            hospitalFilter={hospitalFilter}
-            showImmediateOnly={showImmediateOnly}
-            showUnassignedOnly={showUnassignedOnly}
-            showCbrnOnly={showCbrnOnly}
-            showSurgeryOnly={showSurgeryOnly}
-            onSearch={setSearch}
-            onTriageFilter={setTriageFilter}
-            onInjuryFilter={setInjuryFilter}
-            onHospitalFilter={setHospitalFilter}
-            onImmediateOnly={setShowImmediateOnly}
-            onUnassignedOnly={setShowUnassignedOnly}
-            onCbrnOnly={setShowCbrnOnly}
-            onSurgeryOnly={setShowSurgeryOnly}
-            onSelect={setSelectedPatientId}
-          />
-          <FacilityResources
-            facilities={filteredFacilities}
-            filter={facilityFilter}
-            onFilter={setFacilityFilter}
-            onSelect={setSelectedFacilityId}
-            selectedFacilityId={selectedFacility?.id}
-          />
         </section>
       </main>
     </div>

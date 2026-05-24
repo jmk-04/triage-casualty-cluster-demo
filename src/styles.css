@@ -14,7 +14,7 @@
 
 body {
   margin: 0;
-  min-width: 1180px;
+  min-width: 1280px;
   background: #07110f;
   font-family: Inter, Pretendard, "Noto Sans KR", system-ui, sans-serif;
 }
@@ -44,7 +44,7 @@ select {
 
 .tactical-map {
   width: 100%;
-  height: 540px;
+  height: 430px;
   border: 1px solid #1f3a34;
   border-radius: 8px;
   background: #07110f;
@@ -305,7 +305,7 @@ select {
 }
 
 .table-wrap {
-  max-height: 460px;
+  max-height: 330px;
   overflow: auto;
   border: 1px solid #1f3a34;
   border-radius: 8px;
@@ -345,12 +345,12 @@ select {
 
 .facility-card {
   width: 100%;
-  min-height: 116px;
+  min-height: 104px;
   border: 1px solid #1f3a34;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.18);
   color: #e2e8f0;
-  padding: 10px;
+  padding: 9px;
 }
 
 .facility-card:hover,
