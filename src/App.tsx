@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { NaturalLanguageInput } from './nlp/NaturalLanguageInput';
 import type { MouseEvent, PointerEvent, ReactNode } from 'react';
 import {
   AlertTriangle,
@@ -686,6 +687,7 @@ function PatientDetail({
   return (
     <section className="panel space-y-3">
       <PanelTitle icon={<Users size={16} />} title="환자 상세/수정" />
+      <NaturalLanguageInput patient={patient} onUpdate={onUpdate} />
       <div className="flex items-center justify-between">
         <div>
           <strong className="text-lg">{patient.id}</strong>
